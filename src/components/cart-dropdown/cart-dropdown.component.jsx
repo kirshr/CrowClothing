@@ -1,22 +1,26 @@
-import "./cart-dropdown.styles.scss";
+import {
+  CartDropdownContainer,
+  CartItems,
+  StyledButton,
+} from "./cart-dropdown.styles";
 import Button from "../button/button.component";
 import { useContext } from "react";
 import { CartContext } from "../../context/cart.context";
-import CardItem from "../card-item/card-item.component";
+import CardItem from "../cart-item/cart-item.component";
 import { Link } from "react-router-dom";
 
 export const CartDropdown = () => {
   const { cartItems } = useContext(CartContext);
   return (
-    <div className="cart-dropdown-container">
-      <div className="cart-items">
+    <CartDropdownContainer>
+      <CartItems>
         {cartItems.map((item) => (
           <CardItem key={item.id} cartItem={item} />
         ))}
-      </div>
+      </CartItems>
       <Link to="/checkout">
-        <Button>Check Out</Button>
+        <StyledButton>Check Out</StyledButton>
       </Link>
-    </div>
+    </CartDropdownContainer>
   );
 };
