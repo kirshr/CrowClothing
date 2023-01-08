@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useReducer } from "react";
 
 //Helper function
 const addCartItem = (cartItems, productToAdd) => {
@@ -43,6 +43,46 @@ const removeItem = (cartItems, cartItemToRemove) => {
   }
 };
 
+//REDUCER
+
+//Reducer ACTION_TYPES
+
+export const CART_ACTION_TYPES = {
+  IS_CART_OPEN: "IS_CART_OPEN",
+  SET_CART_ITEMS: "SET_CART_ITEMS",
+};
+
+const INITIAL_STATE = {
+  isCartOpen: false,
+  cartItems: [],
+  cartCount: 0,
+  cartTotal: 0,
+};
+//Remember: REDUCERS ONLY STORE READABLE VALUES
+
+//So, cartReducer, takes in a "state" and an action, we deconstruct the action into an object that has a TYPE and Payload
+//We then use a switch statement, that essentially says, HEY, if this TYPE is called, then give return the spread out state and the PAYLOAD. The PAYLOAD is defined later.
+const cartReducer = (state, action) => {
+  const { type, payload } = action;
+
+  switch (type) {
+    case "IS_CART_OPEN":
+      return {
+        ...state,
+        isCartOpen: payload,
+      };
+      break;
+    case "SET_CART_ITEMS":
+      return {
+        ...state,
+        ...payload,
+      };
+      break;
+    default:
+      return state;
+  }
+};
+
 export const CartContext = createContext({
   //We want to store wether or not the dropdown is active
   isCartOpen: false,
@@ -55,38 +95,57 @@ export const CartContext = createContext({
   removeItem: () => {},
 });
 export const CartProvider = ({ children }) => {
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [{ isCartOpen, cartItems, cartCount, cartTotal }, dispatch] =
+    useReducer(cartReducer, INITIAL_STATE);
 
-  const [cartItems, setCartItems] = useState([]);
+  const setIsCartOpen = (state) => {
+    dispatch({ type: CART_ACTION_TYPES.IS_CART_OPEN, payload: state });
+  };
 
-  const [cartCount, setCartCount] = useState(0);
-
-  const [cartTotal, setCartTotal] = useState(0);
-
-  useEffect(() => {
-    const newCartCount = cartItems.reduce(
-      (total, cartItem) => total + cartItem.quantity,
-      0
-    );
-    setCartCount(newCartCount);
-  }, [cartItems]);
-
-  useEffect(() => {
-    const newCartTotal = cartItems.reduce(
+  //updateCartItemReducer takes in a new variable called newCartItems (which is a new array depending on what is being called (Add, remove etc))
+  //we then create new variables to store the values for newCartTotal and newCartCount, both of which need newCartItems
+  const updateCartItemReducer = (newCartItems) => {
+    /** * Generate newCartTotal*/
+    const newCartTotal = newCartItems.reduce(
       (total, cartItem) => total + cartItem.quantity * cartItem.price,
       0
     );
-    setCartTotal(newCartTotal);
-  }, [cartItems]);
+    /** Generate newCartCount*/
+    const newCartCount = newCartItems.reduce(
+      (total, cartItem) => total + cartItem.quantity,
+      0
+    );
+
+    dispatch({
+      type: "SET_CART_ITEMS",
+      payload: {
+        cartItems: newCartItems,
+        cartCount: newCartCount,
+        cartTotal: newCartTotal,
+      },
+    });
+    /*
+     * Dispatch new action with payload = {
+     * newCartItems,
+     * newCartTotal,
+     * newCartCount
+     *
+     * }
+     *
+     */
+  };
 
   const addItemToCart = (productToAdd) => {
-    setCartItems(addCartItem(cartItems, productToAdd));
+    const newCartItems = addCartItem(cartItems, productToAdd);
+    updateCartItemReducer(newCartItems);
   };
   const removeItemToCart = (produceToRemove) => {
-    setCartItems(removeCartItem(cartItems, produceToRemove));
+    const newCartItems = removeCartItem(cartItems, produceToRemove);
+    updateCartItemReducer(newCartItems);
   };
   const removeItemFromCart = (cartItemToRemove) => {
-    setCartItems(removeItem(cartItems, cartItemToRemove));
+    const newCartItems = removeItem(cartItems, cartItemToRemove);
+    updateCartItemReducer(newCartItems);
   };
   const value = {
     isCartOpen,
