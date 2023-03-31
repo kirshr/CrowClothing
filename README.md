@@ -1,7 +1,8 @@
-#Crown Clothing
+# Crown Clothing
+
 A SPA made with React. Crown Clothing is a mock e-commerce store that sells clothing. Crown clothing has authentication, a working database, and a working cart.
 
-##Libraries used
+## Libraries used
 
 1. Firebase (for authentication and database)
 2. react-router-dom
